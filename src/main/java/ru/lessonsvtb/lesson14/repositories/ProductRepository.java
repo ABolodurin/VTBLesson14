@@ -39,4 +39,10 @@ public class ProductRepository {
     public void remove(Long id) {
         products.remove(findById(id));
     }
+
+    public void updateProduct(Long id, Product updatedProduct){
+        updatedProduct.setId(id);
+        remove(id);
+        save(updatedProduct);
+    }
 }

@@ -18,14 +18,18 @@ public class ProductsController {
     }
 
     @GetMapping
-    public String showProductsList(Model model, @RequestParam(value = "filter", required = false) String filter) {
+    public String showProductsList(Model model, @RequestParam(value = "filter", required = false) String filter,
+                                   @RequestParam(value = "from", required = false) Integer minPrice,
+                                   @RequestParam(value = "to", required = false) Integer maxPrice) {
         Product product = new Product();
         if (filter == null) {
             model.addAttribute("products", productsService.getAllProducts());
         }else
-            model.addAttribute("products", productsService.getFilteredProducts(filter));
+            model.addAttribute("products", productsService.getFilteredProducts(filter, minPrice, maxPrice));
         model.addAttribute("filter", filter);
         model.addAttribute("product", product);
+        model.addAttribute("from", minPrice);
+        model.addAttribute("to", maxPrice);
         return "products";
     }
 
@@ -38,7 +42,9 @@ public class ProductsController {
     @GetMapping("/show/{id}")
     public String showOneProduct(Model model, @PathVariable(value = "id") Long id) {
         Product product = productsService.getById(id);
+        Product editProduct = new Product();
         model.addAttribute("product", product);
+        model.addAttribute("editProduct", editProduct);
         return "product-page";
     }
 
@@ -48,4 +54,11 @@ public class ProductsController {
         productsService.removeProduct(id);
         return "redirect:/products";
     }
+
+    @PostMapping("show/{id}/update")
+    public String updateProduct(@PathVariable(value = "id") Long id, Product updatedProduct){
+        productsService.updateProduct(id, updatedProduct);
+        return "redirect:/products";
+    }
+
 }

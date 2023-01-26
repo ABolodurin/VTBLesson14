@@ -21,7 +21,7 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
-    public void removeProduct(Long id){
+    public void removeProduct(Long id) {
         productRepository.remove(id);
     }
 
@@ -29,10 +29,18 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public List<Product> getFilteredProducts(String filter) {
+    public List<Product> getFilteredProducts(String filter, Integer minPrice, Integer maxPrice) {
+        int min = minPrice == null ? Integer.MIN_VALUE : minPrice;
+        int max = maxPrice == null ? Integer.MAX_VALUE : maxPrice;
         return productRepository.findAll().stream()
-                .filter(p-> p.getTitle().contains(filter))
+                .filter(p -> p.getTitle().contains(filter) &&
+                        p.getPrice() >= min &&
+                        p.getPrice() <= max)
                 .collect(Collectors.toList());
+    }
+
+    public void updateProduct(Long id, Product updatedProduct) {
+        productRepository.updateProduct(id, updatedProduct);
     }
 
     public void add(Product product) {
