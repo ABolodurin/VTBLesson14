@@ -61,9 +61,9 @@
 						<url>jdbc:postgresql://localhost:5432/Lesson14?currentSchema=boot</url>
 						<user>postgres</user>
 						<password>postgres</password>
-						<shemas>
-							<shema>boot</shema>
-						</shemas>
+						<schemas>
+							<schema>boot</schema>
+						</schemas>
 					</configuration>
 			</plugin>
 		</plugins>
