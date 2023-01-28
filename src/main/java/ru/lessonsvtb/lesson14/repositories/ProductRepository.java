@@ -1,48 +1,20 @@
 package ru.lessonsvtb.lesson14.repositories;
 
-
-import org.springframework.stereotype.Component;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.lessonsvtb.lesson14.entities.Product;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-
-@Component
-public class ProductRepository {
-    private List<Product> products;
-
-    @PostConstruct
-    public void init() {
-        products = new ArrayList<>();
-        products.add(new Product(1L, "Bread", 40));
-        products.add(new Product(2L, "Milk", 90));
-        products.add(new Product(3L, "Cheese", 200));
-    }
-
-    public List<Product> findAll() {
-        return products;
-    }
-
-    public Product findByTitle(String title) {
-        return products.stream().filter(p -> p.getTitle().equals(title)).findFirst().get();
-    }
-
-    public Product findById(Long id) {
-        return products.stream().filter(p -> p.getId().equals(id)).findFirst().get();
-    }
-
-    public void save(Product product) {
-        products.add(product);
-    }
-
-    public void remove(Long id) {
-        products.remove(findById(id));
-    }
-
-    public void updateProduct(Long id, Product updatedProduct){
-        updatedProduct.setId(id);
-        remove(id);
-        save(updatedProduct);
-    }
+@Repository
+public interface ProductRepository extends PagingAndSortingRepository<Product, Long>,
+        JpaSpecificationExecutor<Product>, JpaRepository<Product, Long> {
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE Product p SET p.title = :title, p.price = :price WHERE p.id =:id")
+    void updateById(@Param("id") Long id, @Param("title") String title, @Param("price") int price);
 }
