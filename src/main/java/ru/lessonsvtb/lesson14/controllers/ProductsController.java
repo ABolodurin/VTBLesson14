@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.lessonsvtb.lesson14.entities.Product;
+import ru.lessonsvtb.lesson14.repositories.specifications.ProductSpecs;
 import ru.lessonsvtb.lesson14.services.ProductService;
 
 import java.util.ArrayList;
@@ -24,30 +25,33 @@ public class ProductsController {
     }
 
     @GetMapping
-    public String showProductsList(Model model, @RequestParam(value = "filter", required = false) String filter,
+    public String showProductsList(Model model, @RequestParam(value = "title_contains", required = false) String titleContains,
                                    @RequestParam(value = "from", required = false) Integer minPrice,
                                    @RequestParam(value = "to", required = false) Integer maxPrice,
                                    @RequestParam(value = "page", required = false) Integer page) {
         Product product = new Product();
-        Specification<Product> filters = Specification.where(null);
-        if (page == null) page = 0;
-        if (filter == null) {
-            Page<Product> products = productsService.productPage(filters, PageRequest.of(page, 10));
-            model.addAttribute("products", products.getContent());
-            int totalPages = products.getTotalPages();
-            List<Integer> pageNumbers = new ArrayList<>();
-            for (int i = 0; i < totalPages; i++) {
-                pageNumbers.add(i);
-            }
-            model.addAttribute("totalPages", totalPages);
-            model.addAttribute("pageNumbers", pageNumbers);
-        } else
-            model.addAttribute("products", productsService.getFilteredProducts(filter, minPrice, maxPrice));
-        model.addAttribute("filter", filter);
         model.addAttribute("product", product);
+
+        if (page == null) page = 0;
+        model.addAttribute("page", page);
+        model.addAttribute("title_contains", titleContains);
         model.addAttribute("from", minPrice);
         model.addAttribute("to", maxPrice);
-        model.addAttribute("page", page);
+
+        Specification<Product> specs = Specification.where(null);
+        if (titleContains != null) specs = specs.and(ProductSpecs.titleContains(titleContains));
+        if (minPrice != null) specs = specs.and(ProductSpecs.priceGreaterOrEqualTo(minPrice));
+        if (maxPrice != null) specs = specs.and(ProductSpecs.priceLessOrEqualTo(maxPrice));
+
+        Page<Product> products = productsService.productPage(specs, PageRequest.of(page, 10));
+        model.addAttribute("products", products.getContent());
+        int totalPages = products.getTotalPages();
+        List<Integer> pageNumbers = new ArrayList<>();
+        for (int i = 0; i < totalPages; i++) {
+            pageNumbers.add(i);
+        }
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageNumbers", pageNumbers);
         return "products";
     }
 
@@ -65,7 +69,6 @@ public class ProductsController {
         model.addAttribute("editProduct", editProduct);
         return "product-page";
     }
-
 
     @PostMapping("show/{id}/remove")
     public String removeProduct(@PathVariable(value = "id") Long id) {

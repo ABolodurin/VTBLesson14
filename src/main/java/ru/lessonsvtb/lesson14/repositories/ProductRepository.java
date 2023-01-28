@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.lessonsvtb.lesson14.entities.Product;
 
 @Repository
-public interface ProductRepository extends PagingAndSortingRepository<Product, Long>,
-        JpaSpecificationExecutor<Product>, JpaRepository<Product, Long> {
+public interface ProductRepository extends PagingAndSortingRepository<Product, Long>, JpaSpecificationExecutor<Product>,
+        JpaRepository<Product, Long> {
     @Modifying
     @Transactional
     @Query(value = "UPDATE Product p SET p.title = :title, p.price = :price WHERE p.id =:id")
