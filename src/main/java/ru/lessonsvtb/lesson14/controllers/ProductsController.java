@@ -8,7 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.lessonsvtb.lesson14.entities.Product;
+import ru.lessonsvtb.lesson14.entities.ProductDetails;
 import ru.lessonsvtb.lesson14.repositories.specifications.ProductSpecs;
+import ru.lessonsvtb.lesson14.services.ProductDetailsService;
 import ru.lessonsvtb.lesson14.services.ProductService;
 
 import java.util.ArrayList;
@@ -18,6 +20,12 @@ import java.util.List;
 @RequestMapping("/products")
 public class ProductsController {
     private ProductService productsService;
+    private ProductDetailsService productDetailsService;
+
+    @Autowired
+    public void setProductDetailsService(ProductDetailsService productDetailsService) {
+        this.productDetailsService = productDetailsService;
+    }
 
     @Autowired
     public void setProductsService(ProductService productsService) {
@@ -25,7 +33,8 @@ public class ProductsController {
     }
 
     @GetMapping
-    public String showProductsList(Model model, @RequestParam(value = "title_contains", required = false) String titleContains,
+    public String showProductsList(Model model,
+                                   @RequestParam(value = "title_contains", required = false) String titleContains,
                                    @RequestParam(value = "from", required = false) Integer minPrice,
                                    @RequestParam(value = "to", required = false) Integer maxPrice,
                                    @RequestParam(value = "page", required = false) Integer page) {
@@ -44,7 +53,7 @@ public class ProductsController {
         if (maxPrice != null) specs = specs.and(ProductSpecs.priceLessOrEqualTo(maxPrice));
 
         Page<Product> products = productsService.productPage(specs, PageRequest.of(page, 10));
-        model.addAttribute("products", products.getContent());
+        model.addAttribute("products", products);
         int totalPages = products.getTotalPages();
         List<Integer> pageNumbers = new ArrayList<>();
         for (int i = 0; i < totalPages; i++) {
@@ -52,12 +61,21 @@ public class ProductsController {
         }
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("pageNumbers", pageNumbers);
+
+        List<Product> mostViewedProducts = new ArrayList<>();
+        productDetailsService.getMostViewed(3)
+                .forEach(productDetails -> mostViewedProducts.add(productsService.getById(productDetails.getProductId())));
+        model.addAttribute("mostViewed", mostViewedProducts);
+
         return "products";
     }
 
     @PostMapping("/add")
     public String addProduct(@ModelAttribute(value = "product") Product product) {
+        ProductDetails productDetails = new ProductDetails(product.getId(), 0L, product);
+        product.setProductDetails(productDetails);
         productsService.add(product);
+        productDetailsService.add(productDetails);
         return "redirect:/products";
     }
 
@@ -79,6 +97,19 @@ public class ProductsController {
     @PostMapping("show/{id}/update")
     public String updateProduct(@PathVariable(value = "id") Long id, Product updatedProduct) {
         productsService.updateProduct(id, updatedProduct);
+        return "redirect:/products";
+    }
+
+    @GetMapping("/init")
+    public String initViews() {
+        List<Product> products = productsService.findAll();
+        products.forEach(product ->
+        {
+            if (product.getProductDetails() == null) {
+                product.setProductDetails(new ProductDetails(product.getId(), 0L, product));
+                productsService.updateProduct(product.getId(), product);
+            }
+        });
         return "redirect:/products";
     }
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8"/>
     <title>Каталог товаров</title>
@@ -10,6 +11,35 @@
 
 <body>
 <div class="container">
+    <div sec:authorize="isAuthenticated()">Hello,
+        <div sec:authentication="principal.username"></div>
+        <div style="color: darkred" sec:authorize="hasRole('ADMIN')"> ADMIN</div>
+        <div sec:authorize="hasRole('ADMIN')">Для корректной работы логгирования просмотров необходимо обновить продукты,
+            которые были добавлены вручную через БД!
+            <a th:href="@{/products/init}">Обновить продукты</a>
+        </div>
+        <form th:action="@{/logout}" method="post">
+            <div style="margin-top: 10px" class="form-group">
+                <div class="col-sm-6 controls">
+                    <input hidden type="submit" value="Sign Out"/>
+                    <button type="submit" class="btn btn-primary">Logout</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div sec:authorize="isAnonymous()">
+<!--        <a th:href="@{/login}">Log In</a>-->
+        <form th:action="@{/login}" method="post">
+            <div style="margin-bottom: 25px" class="input-group">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                <input type="text" name="username"  placeholder="username" class="form-control"/>
+                <input type="password" name="password"  placeholder="password" class="form-control"/>
+                <button type="submit" class="btn btn-primary">Log in</button>
+            </div>
+        </form>
+    </div>
+
     <table class="table table-hover">
         <thead>
         <tr>
@@ -20,7 +50,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="product : ${products}">
+        <tr th:each="product : ${products.getContent()}">
             <td th:text="${product.id}"/>
             <td th:text="${product.title}"/>
             <td th:text="${product.price}"/>
@@ -30,7 +60,12 @@
         </tr>
         </tbody>
     </table>
-    <span th:text="${'Всего товаров ' + products.size()}"/>
+
+    <div th:text="${'Всего товаров ' + products.getTotalElements()}"/>
+
+    <span>Самые просматриваемые:
+        <span th:each="p : ${mostViewed}" th:text="${p.getTitle() + ', '}"/>
+    </span>
     <br>
     <form th:action="@{/products/add}"
           th:object="${product}" method="post" class="form-horizontal">

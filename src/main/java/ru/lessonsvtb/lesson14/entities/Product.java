@@ -14,6 +14,10 @@ public class Product {
     @Column(name = "price")
     private int price;
 
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    private ProductDetails productDetails;
+
     public Product() {
     }
 
@@ -46,4 +50,13 @@ public class Product {
     public void setPrice(int price) {
         this.price = price;
     }
+
+    public ProductDetails getProductDetails() {
+        return productDetails;
+    }
+
+    public void setProductDetails(ProductDetails productDetails) {
+        this.productDetails = productDetails;
+    }
+
 }

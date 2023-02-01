@@ -7,10 +7,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import ru.lessonsvtb.lesson14.entities.Product;
 import ru.lessonsvtb.lesson14.repositories.ProductRepository;
+import java.util.List;
 
 @Service
 public class ProductService {
     private ProductRepository productRepository;
+
 
     @Autowired
     public void setProductRepository(ProductRepository productRepository) {
@@ -29,6 +31,10 @@ public class ProductService {
         return productRepository.findAll(specifications, pageable);
     }
 
+    public List<Product> findAll(){
+        return productRepository.findAll();
+    }
+
     public void updateProduct(Long id, Product updatedProduct) {
         productRepository.updateById(id, updatedProduct.getTitle(), updatedProduct.getPrice());
     }
@@ -36,4 +42,5 @@ public class ProductService {
     public void add(Product product) {
         productRepository.save(product);
     }
+
 }

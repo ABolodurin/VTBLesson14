@@ -17,4 +17,5 @@ public interface ProductRepository extends PagingAndSortingRepository<Product, L
     @Transactional
     @Query(value = "UPDATE Product p SET p.title = :title, p.price = :price WHERE p.id =:id")
     void updateById(@Param("id") Long id, @Param("title") String title, @Param("price") int price);
+
 }
